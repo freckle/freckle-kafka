@@ -1,0 +1,22 @@
+resolver: lts-24.22
+
+extra-deps:
+  - data-default-class-0.1.2.2
+  - dotenv-0.12.0.0
+  - freckle-env-0.0.1.2
+  - thread-utils-context-0.3.0.4
+  - thread-utils-finalizers-0.1.1.0
+
+  - github: iand675/hs-opentelemetry
+    commit: 2e577f2dbd28c67f01b80c648c8e45d972763559
+    subdirs:
+      - api
+      - otlp
+      - sdk
+      - exporters/otlp
+      - instrumentation/persistent
+      - instrumentation/wai
+      - instrumentation/yesod
+      - propagators/b3
+      - propagators/datadog
+      - propagators/w3c
