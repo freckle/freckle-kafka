@@ -1,1 +1,17 @@
 resolver: lts-23.17
+
+extra-deps:
+  - data-default-class-0.1.2.2
+  - dotenv-0.12.0.0
+  - freckle-env-0.0.1.2
+  - hs-opentelemetry-api-0.2.0.0
+  - hs-opentelemetry-exporter-otlp-0.1.0.0
+  - hs-opentelemetry-instrumentation-persistent-0.1.0.1
+  - hs-opentelemetry-instrumentation-wai-0.1.1.0
+  - hs-opentelemetry-otlp-0.1.0.0
+  - hs-opentelemetry-propagator-b3-0.0.1.2
+  - hs-opentelemetry-propagator-datadog-0.0.1.0
+  - hs-opentelemetry-propagator-w3c-0.0.1.4
+  - hs-opentelemetry-sdk-0.1.0.0
+  - thread-utils-context-0.3.0.4
+  - thread-utils-finalizers-0.1.1.0
