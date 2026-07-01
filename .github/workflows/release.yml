@@ -8,7 +8,7 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Install system libraries
         run: sudo apt-get install --assume-yes --no-install-recommends libpcre3-dev librdkafka-dev
