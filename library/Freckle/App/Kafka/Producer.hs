@@ -7,6 +7,7 @@ module Freckle.App.Kafka.Producer
   , envKafkaProducerPoolConfig
   , KafkaProducerPool (..)
   , HasKafkaProducerPool (..)
+  , withKafkaProducerPool
   , createKafkaProducerPool
   , produceKeyedOn
   , produce
@@ -23,7 +24,7 @@ import Blammo.Logging
   )
 import Control.Exception.Annotated.UnliftIO qualified as Annotated
 import Control.Lens (Lens', lens, view)
-import Control.Monad.IO.Class (liftIO)
+import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad.Reader (MonadReader)
 import Data.Aeson (ToJSON, encode)
 import Data.ByteString.Lazy qualified as BSL
@@ -40,7 +41,7 @@ import Kafka.Producer
 import OpenTelemetry.Trace (SpanKind (..), defaultSpanArguments)
 import OpenTelemetry.Trace qualified as Trace
 import OpenTelemetry.Trace.Monad (MonadTracer, inSpan)
-import UnliftIO (MonadUnliftIO, withRunInIO)
+import UnliftIO (MonadUnliftIO, bracket, withRunInIO)
 import Yesod.Core.Types (HandlerData (..), RunHandlerEnv (..))
 
 envKafkaBrokerAddresses
@@ -104,18 +105,37 @@ envL = lens handlerEnv $ \x y -> x {handlerEnv = y}
 siteL :: Lens' (RunHandlerEnv child site) site
 siteL = lens rheSite $ \x y -> x {rheSite = y}
 
-createKafkaProducerPool
-  :: NonEmpty BrokerAddress
+-- | Create a Kafka producer pool, closing it once the given action
+--   completes
+withKafkaProducerPool
+  :: MonadUnliftIO m
+  => NonEmpty BrokerAddress
   -> KafkaProducerPoolConfig
-  -> IO (Pool KafkaProducer)
+  -> (Pool KafkaProducer -> m a)
+  -> m a
+withKafkaProducerPool addresses config =
+  bracket
+    (createKafkaProducerPool addresses config)
+    (liftIO . Pool.destroyAllResources)
+
+-- | Create a Kafka producer pool for the given broker addresses and config
+--
+-- Prefer 'withKafkaProducerPool', which closes the pool with
+-- 'Pool.destroyAllResources' once the given action completes.
+createKafkaProducerPool
+  :: MonadIO m
+  => NonEmpty BrokerAddress
+  -> KafkaProducerPoolConfig
+  -> m (Pool KafkaProducer)
 createKafkaProducerPool addresses config =
-  Pool.newPool $
-    Pool.setNumStripes (Just $ kafkaProducerPoolConfigStripes config) $
-      Pool.defaultPoolConfig
-        mkProducer
-        closeProducer
-        (realToFrac $ kafkaProducerPoolConfigIdleTimeout config)
-        (kafkaProducerPoolConfigSize config)
+  liftIO $
+    Pool.newPool $
+      Pool.setNumStripes (Just $ kafkaProducerPoolConfigStripes config) $
+        Pool.defaultPoolConfig
+          mkProducer
+          closeProducer
+          (realToFrac $ kafkaProducerPoolConfigIdleTimeout config)
+          (kafkaProducerPoolConfigSize config)
  where
   mkProducer =
     either

@@ -1,11 +1,11 @@
 cabal-version: 1.18
 
--- This file has been generated from package.yaml by hpack version 0.38.1.
+-- This file has been generated from package.yaml by hpack version 0.39.1.
 --
 -- see: https://github.com/sol/hpack
 
 name:           freckle-kafka
-version:        0.0.0.4
+version:        0.1.0.0
 synopsis:       Some extensions to the hw-kafka-client library
 description:    Please see README.md
 category:       Database
