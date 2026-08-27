@@ -1,4 +1,12 @@
-## [_Unreleased_](https://github.com/freckle/freckle-kafka/compare/v0.0.0.4...main)
+## [_Unreleased_](https://github.com/freckle/freckle-kafka/compare/v0.1.0.0...main)
+
+## [v0.1.0.0](https://github.com/freckle/freckle-kafka/compare/v0.0.0.4...v0.1.0.0)
+
+- Add `withKafkaProducerPool`, which creates a Kafka producer pool and
+  closes it with `Pool.destroyAllResources` once the given action
+  completes. Prefer this to `createKafkaProducerPool`, which leaves the
+  pool open for the caller to close.
+- Generalize `createKafkaProducerPool` from `IO` to any `MonadIO`
 
 ## [v0.0.0.4](https://github.com/freckle/freckle-kafka/tree/v0.0.0.4)
 
