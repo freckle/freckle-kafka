@@ -8,7 +8,9 @@ module Freckle.App.Kafka.Producer
   , KafkaProducerPool (..)
   , HasKafkaProducerPool (..)
   , withKafkaProducerPool
+  , withKafkaProducerPoolWith
   , createKafkaProducerPool
+  , createKafkaProducerPoolWith
   , produceKeyedOn
   , produce
   ) where
@@ -37,6 +39,7 @@ import Data.Pool qualified as Pool
 import Data.Text qualified as T
 import Data.Time (NominalDiffTime)
 import Freckle.App.Env qualified as Env
+import Freckle.App.Kafka.Producer.Hooks (ProducerHooks, producerHooksProperties)
 import Kafka.Producer
 import OpenTelemetry.Trace (SpanKind (..), defaultSpanArguments)
 import OpenTelemetry.Trace qualified as Trace
@@ -113,9 +116,20 @@ withKafkaProducerPool
   -> KafkaProducerPoolConfig
   -> (Pool KafkaProducer -> m a)
   -> m a
-withKafkaProducerPool addresses config =
+withKafkaProducerPool = withKafkaProducerPoolWith mempty
+
+-- | 'withKafkaProducerPool', registering the given 'ProducerHooks' on every
+--   producer in the pool
+withKafkaProducerPoolWith
+  :: MonadUnliftIO m
+  => ProducerHooks
+  -> NonEmpty BrokerAddress
+  -> KafkaProducerPoolConfig
+  -> (Pool KafkaProducer -> m a)
+  -> m a
+withKafkaProducerPoolWith hooks addresses config =
   bracket
-    (createKafkaProducerPool addresses config)
+    (createKafkaProducerPoolWith hooks addresses config)
     (liftIO . Pool.destroyAllResources)
 
 -- | Create a Kafka producer pool for the given broker addresses and config
@@ -127,7 +141,20 @@ createKafkaProducerPool
   => NonEmpty BrokerAddress
   -> KafkaProducerPoolConfig
   -> m (Pool KafkaProducer)
-createKafkaProducerPool addresses config =
+createKafkaProducerPool = createKafkaProducerPoolWith mempty
+
+-- | 'createKafkaProducerPool', registering the given 'ProducerHooks' on every
+--   producer in the pool
+--
+-- See "Freckle.App.Kafka.Producer.Hooks" for logging failures and counting
+-- events.
+createKafkaProducerPoolWith
+  :: MonadIO m
+  => ProducerHooks
+  -> NonEmpty BrokerAddress
+  -> KafkaProducerPoolConfig
+  -> m (Pool KafkaProducer)
+createKafkaProducerPoolWith hooks addresses config =
   liftIO $
     Pool.newPool $
       Pool.setNumStripes (Just $ kafkaProducerPoolConfigStripes config) $
@@ -142,7 +169,10 @@ createKafkaProducerPool addresses config =
       ( \err -> Annotated.throw $ userError ("Failed to open kafka producer: " <> show err)
       )
       pure
-      =<< newProducer (brokersList $ toList addresses)
+      =<< newProducer
+        ( brokersList (toList addresses)
+            <> producerHooksProperties hooks
+        )
 
 produceKeyedOn
   :: ( MonadUnliftIO m

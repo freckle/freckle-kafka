@@ -30,6 +30,7 @@ library
       Freckle.App.Kafka
       Freckle.App.Kafka.Consumer
       Freckle.App.Kafka.Producer
+      Freckle.App.Kafka.Producer.Hooks
   other-modules:
       Paths_freckle_kafka
   hs-source-dirs:
