@@ -20,8 +20,8 @@ module Freckle.App.Kafka.Producer.Hooks
 
 import Prelude
 
-import Blammo.Logging (Logger, Message ((:#)), logErrorNS, (.=))
-import Blammo.Logging.Setup (runLoggerLoggingT)
+import Blammo.Logging (Message ((:#)), logErrorNS, (.=))
+import Control.Monad.Logger.Aeson (LoggingT)
 import Data.Text qualified as T
 import Data.Text.Encoding (decodeUtf8With)
 import Data.Text.Encoding.Error (lenientDecode)
@@ -68,15 +68,18 @@ instance Monoid ProducerHooks where
 
 -- | Hooks that log failures at error level, under the @kafka@ namespace
 --
+-- Hooks run in 'IO' on a librdkafka thread, so the caller supplies how to run
+-- logging there, such as @runLoggerLoggingT logger@ from Blammo.
+--
 -- Successful deliveries are not logged. The event payload is never logged,
 -- only the topic, partition and key.
-loggingProducerHooks :: Logger -> ProducerHooks
-loggingProducerHooks logger =
+loggingProducerHooks :: (LoggingT IO () -> IO ()) -> ProducerHooks
+loggingProducerHooks runLogging =
   ProducerHooks
     { onDeliveryReport = \case
         DeliverySuccess {} -> pure ()
         DeliveryFailure record err ->
-          runLoggerLoggingT logger
+          runLogging
             $ logErrorNS "kafka"
             $ "Failed to deliver event"
               :# [ "topic" .= unTopicName (prTopic record)
@@ -85,12 +88,12 @@ loggingProducerHooks logger =
                  , "error" .= T.pack (show err)
                  ]
         NoMessageError err ->
-          runLoggerLoggingT logger
+          runLogging
             $ logErrorNS "kafka"
             $ "Delivery report without a message"
               :# ["error" .= T.pack (show err)]
     , onProducerError = \err message ->
-        runLoggerLoggingT logger
+        runLogging
           $ logErrorNS "kafka"
           $ "Kafka producer error"
             :# ["error" .= T.pack (show err), "message" .= T.pack message]

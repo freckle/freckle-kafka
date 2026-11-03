@@ -58,6 +58,7 @@ library
     , hs-opentelemetry-sdk
     , hw-kafka-client
     , lens
+    , monad-logger-aeson
     , mtl
     , resource-pool >=0.4.0.0
     , text
