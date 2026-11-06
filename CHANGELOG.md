@@ -1,5 +1,13 @@
 ## [_Unreleased_](https://github.com/freckle/freckle-kafka/compare/v0.1.0.0...main)
 
+- Add `Freckle.App.Kafka.Producer.Hooks`, with `ProducerHooks` for reacting to
+  librdkafka delivery reports and client errors, and `loggingProducerHooks` to
+  log failures (topic, partition, key and error; never the payload). Without
+  these, a message that fails after being enqueued is never reported.
+- Add `createKafkaProducerPoolWith` and `withKafkaProducerPoolWith`, which
+  register `ProducerHooks` on every producer in the pool. The existing
+  functions are unchanged and register none.
+
 ## [v0.1.0.0](https://github.com/freckle/freckle-kafka/compare/v0.0.0.4...v0.1.0.0)
 
 - Add `withKafkaProducerPool`, which creates a Kafka producer pool and
