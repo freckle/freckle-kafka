@@ -7,6 +7,7 @@ import Prelude
 import Control.Exception (bracket, throwIO)
 import Control.Monad.Logger.Aeson (LogLevel (..), LoggingT, runLoggingT)
 import Data.IORef (IORef, modifyIORef', newIORef, readIORef)
+import Data.Map.Strict qualified as Map
 import Data.Text (Text)
 import Data.Text qualified as T
 import Freckle.App.Kafka.Producer.Hooks
@@ -129,7 +130,7 @@ unreachable hooks =
     -- Not 'sendTimeout': in hw-kafka-client 5.3.0 that sets a topic-level
     -- property which is never applied, so messages would wait out the default
     -- 5 minutes. The global property works.
-    <> extraProp "delivery.timeout.ms" "500"
+    <> extraProps (Map.singleton "delivery.timeout.ms" "500")
     -- librdkafka logs every refused connection to stderr; only log emergencies
     <> logLevel KafkaLogEmerg
     <> producerHooksProperties hooks
