@@ -69,3 +69,38 @@ library
   default-language: GHC2021
   if impl(ghc >= 9.8)
     ghc-options: -Wno-missing-role-annotations -Wno-missing-poly-kind-signatures
+
+test-suite spec
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Freckle.App.Kafka.Producer.HooksSpec
+      SpecHook
+      WhateverSpec
+      Paths_freckle_kafka
+  hs-source-dirs:
+      test
+  default-extensions:
+      DataKinds
+      DeriveAnyClass
+      DerivingVia
+      DerivingStrategies
+      GADTs
+      LambdaCase
+      NoImplicitPrelude
+      NoMonomorphismRestriction
+      OverloadedStrings
+      TypeFamilies
+  ghc-options: -fignore-optim-changes -fwrite-ide-info -Weverything -Wno-all-missed-specialisations -Wno-missing-exported-signatures -Wno-missing-import-lists -Wno-missing-kind-signatures -Wno-missing-local-signatures -Wno-missing-safe-haskell-mode -Wno-monomorphism-restriction -Wno-prepositive-qualified-module -Wno-safe -Wno-unsafe -threaded -rtsopts "-with-rtsopts=-N"
+  build-depends:
+      base <5
+    , containers
+    , freckle-kafka
+    , hspec
+    , hspec-junit-formatter
+    , hw-kafka-client
+    , monad-logger-aeson
+    , text
+  default-language: GHC2021
+  if impl(ghc >= 9.8)
+    ghc-options: -Wno-missing-role-annotations -Wno-missing-poly-kind-signatures
