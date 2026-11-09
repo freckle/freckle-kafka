@@ -35,6 +35,15 @@ jobs:
       - uses: actions/checkout@v7
       - name: Install system libraries
         run: sudo apt-get install --assume-yes --no-install-recommends binutils librdkafka-dev
+      - name: Debug linker (temporary)
+        run: |
+          echo "PATH=$PATH"
+          which -a ld ld.bfd ld.gold ld.lld gcc || true
+          ls -l /usr/bin/*ld* /usr/bin/x86_64-linux-gnu-ld* 2>&1 || true
+          gcc -print-prog-name=ld || true
+          gcc -print-search-dirs || true
+          dpkg -l | grep -E 'binutils|gcc|gold' || true
+          echo 'int main(){return 0;}' > /tmp/t.c && gcc /tmp/t.c -o /tmp/t && echo "plain gcc link OK" || echo "plain gcc link FAILED"
       - id: stack
         uses: freckle/stack-action@v5
         env:
