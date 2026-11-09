@@ -35,35 +35,9 @@ jobs:
       - uses: actions/checkout@v7
       - name: Install system libraries
         run: sudo apt-get install --assume-yes --no-install-recommends binutils librdkafka-dev
-      - name: Debug linker (temporary)
-        env:
-          STACK_YAML: ${{ matrix.stack-yaml }}
-        run: |
-          echo "::group::gold packages"
-          sudo apt-get update || true
-          apt-cache policy binutils-gold || true
-          apt-cache search 'gold linker' || true
-          apt-cache search binutils-gold || true
-          echo "::endgroup::"
-          echo "::group::stack setup (expected to fail at the sanity check)"
-          stack setup || true
-          echo "::endgroup::"
-          echo "::group::GHC settings"
-          for f in $(find "$HOME/.stack/programs" -name settings -path '*lib*' 2>/dev/null); do
-            echo "== $f"
-            grep -iE 'ld|link|gcc|C compiler' "$f" || true
-          done
-          echo "::endgroup::"
-          echo "::group::gcc with gold and bfd"
-          echo 'int main(){return 0;}' > /tmp/t.c
-          gcc -fuse-ld=gold /tmp/t.c -o /tmp/t && echo "fuse-ld=gold OK" || echo "fuse-ld=gold FAILED"
-          gcc -fuse-ld=bfd /tmp/t.c -o /tmp/t && echo "fuse-ld=bfd OK" || echo "fuse-ld=bfd FAILED"
-          echo "::endgroup::"
       - id: stack
         uses: freckle/stack-action@v5
         with:
-          # Bust caches saved on the old runner image. They hold a GHC that was
-          # configured there, which links with a gold that ubuntu-26.04 lacks.
           cache-prefix: v2
         env:
           STACK_YAML: ${{ matrix.stack-yaml }}
