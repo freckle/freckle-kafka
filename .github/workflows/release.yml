@@ -11,7 +11,7 @@ jobs:
       - uses: actions/checkout@v7
 
       - name: Install system libraries
-        run: sudo apt-get install --assume-yes --no-install-recommends libpcre3-dev librdkafka-dev
+        run: sudo apt-get install --assume-yes --no-install-recommends librdkafka-dev
 
       - id: tag
         uses: freckle/haskell-tag-action@v1
