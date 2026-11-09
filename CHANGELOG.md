@@ -1,4 +1,6 @@
-## [_Unreleased_](https://github.com/freckle/freckle-kafka/compare/v0.1.0.0...main)
+## [_Unreleased_](https://github.com/freckle/freckle-kafka/compare/v0.1.1.0...main)
+
+## [v0.1.1.0](https://github.com/freckle/freckle-kafka/compare/v0.1.0.0...v0.1.1.0)
 
 - Add `Freckle.App.Kafka.Producer.Hooks`, with `ProducerHooks` for reacting to
   librdkafka delivery reports and client errors, and `loggingProducerHooks` to
