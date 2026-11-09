@@ -61,6 +61,10 @@ jobs:
           echo "::endgroup::"
       - id: stack
         uses: freckle/stack-action@v5
+        with:
+          # Bust caches saved on the old runner image. They hold a GHC that was
+          # configured there, which links with a gold that ubuntu-26.04 lacks.
+          cache-prefix: v2
         env:
           STACK_YAML: ${{ matrix.stack-yaml }}
 
