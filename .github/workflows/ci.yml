@@ -36,14 +36,29 @@ jobs:
       - name: Install system libraries
         run: sudo apt-get install --assume-yes --no-install-recommends binutils librdkafka-dev
       - name: Debug linker (temporary)
+        env:
+          STACK_YAML: ${{ matrix.stack-yaml }}
         run: |
-          echo "PATH=$PATH"
-          which -a ld ld.bfd ld.gold ld.lld gcc || true
-          ls -l /usr/bin/*ld* /usr/bin/x86_64-linux-gnu-ld* 2>&1 || true
-          gcc -print-prog-name=ld || true
-          gcc -print-search-dirs || true
-          dpkg -l | grep -E 'binutils|gcc|gold' || true
-          echo 'int main(){return 0;}' > /tmp/t.c && gcc /tmp/t.c -o /tmp/t && echo "plain gcc link OK" || echo "plain gcc link FAILED"
+          echo "::group::gold packages"
+          sudo apt-get update || true
+          apt-cache policy binutils-gold || true
+          apt-cache search 'gold linker' || true
+          apt-cache search binutils-gold || true
+          echo "::endgroup::"
+          echo "::group::stack setup (expected to fail at the sanity check)"
+          stack setup || true
+          echo "::endgroup::"
+          echo "::group::GHC settings"
+          for f in $(find "$HOME/.stack/programs" -name settings -path '*lib*' 2>/dev/null); do
+            echo "== $f"
+            grep -iE 'ld|link|gcc|C compiler' "$f" || true
+          done
+          echo "::endgroup::"
+          echo "::group::gcc with gold and bfd"
+          echo 'int main(){return 0;}' > /tmp/t.c
+          gcc -fuse-ld=gold /tmp/t.c -o /tmp/t && echo "fuse-ld=gold OK" || echo "fuse-ld=gold FAILED"
+          gcc -fuse-ld=bfd /tmp/t.c -o /tmp/t && echo "fuse-ld=bfd OK" || echo "fuse-ld=bfd FAILED"
+          echo "::endgroup::"
       - id: stack
         uses: freckle/stack-action@v5
         env:
